@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Find Doctors{% endblock %}
+{% block page_title %}Our Specialists{% endblock %}
+
+{% block content %}
+<div class="card mb-4" style="padding: 16px;">
+    <form method="get" class="flex gap-3 align-center">
+        <div style="flex: 1;">
+            <select name="specialization" class="form-control" onchange="this.form.submit()">
+                <option value="">All Specializations</option>
+                {% for value, label in specializations %}
+                    <option value="{{ value }}" {% if selected == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if selected %}
+            <a href="{% url 'doctor_list' %}" class="btn btn-outline" style="white-space: nowrap;">Clear Filter</a>
+        {% endif %}
+        <a href="{% url 'doctor_map' %}" class="btn btn-secondary" style="white-space: nowrap;"><i class="fas fa-map-marked-alt"></i> Nearby Map</a>
+    </form>
+</div>
+
+{% if doctors %}
+<div class="doctors-grid">
+    {% for doctor in doctors %}
+    <div class="doctor-card">
+        {% if doctor.profile_picture %}
+            <img src="{{ doctor.profile_picture.url }}" alt="{{ doctor.name }}" class="doctor-avatar" style="object-fit: cover;">
+        {% else %}
+            <div class="doctor-avatar"><i class="fas fa-user-md" style="color: #fff;"></i></div>
+        {% endif %}
+        <div class="flex justify-between align-center">
+            <h3 class="doctor-name">Dr. {{ doctor.name }}</h3>
+            <span class="rating-stars"><i class="fas fa-star"></i> {{ doctor.rating }}</span>
+        </div>
+        <div class="doctor-spec">{{ doctor.specialization }} • {{ doctor.years_experience }} Years Exp.</div>
+        <div class="doctor-info">
+            <div class="doctor-info-row"><i class="fas fa-hospital"></i> {{ doctor.hospital_name }}</div>
+            <div class="doctor-info-row"><i class="fas fa-map-marker-alt"></i> {{ doctor.city|default:"Location info unavailable" }}</div>
+            <div class="doctor-info-row"><i class="fas fa-money-bill-wave"></i> ₹{{ doctor.consultation_fee }} per visit</div>
+        </div>
+        <div class="mt-4 flex gap-3">
+            <a href="{% url 'doctor_detail' doctor.id %}" class="btn btn-primary w-full" style="justify-content: center;">View Profile</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card empty-state">
+    <i class="fas fa-search"></i>
+    <p>No doctors found matching the current criteria.</p>
+</div>
+{% endif %}
+{% endblock %}

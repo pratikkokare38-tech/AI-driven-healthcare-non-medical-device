@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Dr. {{ doctor.name }}{% endblock %}
+{% block page_title %}Doctor Profile{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 900px; margin: 0 auto;">
+    <div class="flex" style="gap: 32px; flex-wrap: wrap;">
+        <div style="text-align: center; width: 220px;">
+            {% if doctor.profile_picture %}
+                <img src="{{ doctor.profile_picture.url }}" alt="{{ doctor.name }}" style="width: 220px; height: 220px; border-radius: 24px; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            {% else %}
+                <div style="width: 220px; height: 220px; border-radius: 24px; background: linear-gradient(135deg, var(--primary), #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 80px; box-shadow: 0 10px 30px rgba(99,102,241,0.3);">
+                    <i class="fas fa-user-md" style="color: #fff;"></i>
+                </div>
+            {% endif %}
+            <div class="mt-4">
+                <span class="tag"><i class="fas fa-star" style="color:#fbbf24;"></i> {{ doctor.rating }} / 5.0</span>
+            </div>
+            <div class="mt-4">
+                {% if doctor.is_available %}
+                    <span class="tag" style="background: rgba(16,185,129,0.15); color: #6ee7b7; border-color: rgba(16,185,129,0.3);"><i class="fas fa-check-circle"></i> Currently Available</span>
+                {% else %}
+                    <span class="tag" style="background: rgba(239,68,68,0.15); color: #fca5a5; border-color: rgba(239,68,68,0.3);"><i class="fas fa-times-circle"></i> Unavailable</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div style="flex: 1; min-width: 300px;">
+            <h2 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Dr. {{ doctor.name }}</h2>
+            <div class="text-primary" style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">{{ doctor.specialization }}</div>
+            
+            <div class="grid-2">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label>Hospital/Clinic</label>
+                    <div style="font-size: 16px; font-weight: 500;"><i class="fas fa-hospital text-muted" style="width: 20px;"></i> {{ doctor.hospital_name }}</div>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label>Experience</label>
+                    <div style="font-size: 16px; font-weight: 500;"><i class="fas fa-briefcase text-muted" style="width: 20px;"></i> {{ doctor.years_experience }} Years</div>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label>Consultation Fee</label>
+                    <div style="font-size: 16px; font-weight: 500;"><i class="fas fa-money-bill-wave text-muted" style="width: 20px;"></i> ₹{{ doctor.consultation_fee }}</div>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label>License No.</label>
+                    <div style="font-size: 16px; font-weight: 500;"><i class="fas fa-id-card text-muted" style="width: 20px;"></i> {{ doctor.license_number }}</div>
+                </div>
+            </div>
+            
+            <div class="separator"></div>
+            
+            <h3 style="font-size: 16px; margin-bottom: 16px;"><i class="fas fa-address-book text-primary"></i> Contact Information</h3>
+            <div class="form-group" style="margin-bottom: 12px;">
+                <div style="font-size: 15px;"><i class="fas fa-phone-alt text-muted" style="width: 24px;"></i> {{ doctor.phone }}</div>
+            </div>
+            {% if doctor.email %}
+            <div class="form-group" style="margin-bottom: 12px;">
+                <div style="font-size: 15px;"><i class="fas fa-envelope text-muted" style="width: 24px;"></i> {{ doctor.email }}</div>
+            </div>
+            {% endif %}
+            <div class="form-group" style="margin-bottom: 12px;">
+                <div style="font-size: 15px; line-height: 1.5;"><i class="fas fa-map-marker-alt text-muted" style="width: 24px;"></i> {{ doctor.address }}, {{ doctor.city }}</div>
+            </div>
+            
+            <div class="mt-4 flex gap-3">
+                <a href="tel:{{ doctor.phone }}" class="btn btn-primary"><i class="fas fa-phone"></i> Book Appointment</a>
+                <a href="{% url 'doctor_list' %}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back to List</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

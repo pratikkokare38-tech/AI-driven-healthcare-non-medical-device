@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Health Check{% endblock %}
+{% block page_title %}Submit Health Data{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+    <div class="card-header">
+        <i class="fas fa-heartbeat"></i> Enter Your Vitals
+    </div>
+    <form method="post" action="{% url 'health_input' %}" class="auth-form">
+        {% csrf_token %}
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Heart Rate <span class="unit">(BPM)</span></label>
+                <input type="number" step="0.1" name="heart_rate" class="form-control" required placeholder="e.g. 75">
+            </div>
+            <div class="form-group">
+                <label>Systolic BP <span class="unit">(mmHg)</span></label>
+                <input type="number" step="0.1" name="blood_pressure_sys" class="form-control" required placeholder="e.g. 120">
+            </div>
+            <div class="form-group">
+                <label>Diastolic BP <span class="unit">(mmHg)</span></label>
+                <input type="number" step="0.1" name="blood_pressure_dia" class="form-control" required placeholder="e.g. 80">
+            </div>
+            <div class="form-group">
+                <label>Oxygen Saturation (SpO2) <span class="unit">(%)</span></label>
+                <input type="number" step="0.1" name="spo2" class="form-control" required placeholder="e.g. 98">
+            </div>
+            <div class="form-group">
+                <label>Body Mass Index (BMI)</label>
+                <input type="number" step="0.1" name="bmi" class="form-control" required placeholder="e.g. 24.5">
+            </div>
+            <div class="form-group">
+                <label>Body Temperature <span class="unit">(°C)</span></label>
+                <input type="number" step="0.1" name="temperature" class="form-control" required placeholder="e.g. 36.6">
+            </div>
+            <div class="form-group">
+                <label>Blood Glucose <span class="unit">(mg/dL)</span></label>
+                <input type="number" step="0.1" name="glucose" class="form-control" required placeholder="e.g. 90">
+            </div>
+        </div>
+        <div class="form-group mt-4">
+            <label>Symptoms (Optional)</label>
+            <textarea name="symptoms" class="form-control" rows="3" placeholder="Describe how you are feeling..."></textarea>
+        </div>
+        
+        <div class="alert-toast alert-warning mt-4" style="opacity: 1; animation: none; position: static; max-width: 100%;">
+            <i class="fas fa-exclamation-triangle"></i>
+            Disclaimer: This AI prediction is for educational and research purposes only and is not a substitute for professional medical advice.
+        </div>
+        
+        <div class="mt-4" style="text-align: right;">
+            <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-magic"></i> Analyze & Predict Risk</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,429 @@
+{% extends 'base.html' %}
+{% block title %}Find Nearby Doctors{% endblock %}
+{% block page_title %}Find Nearby Doctors Based on Your Health Report{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+    #map { width: 70%; height: 600px; border-radius: 12px; display: inline-block; vertical-align: top; }
+    #doctors-list { width: 28%; display: inline-block; vertical-align: top; margin-left: 2%; max-height: 600px; overflow-y: auto; background: white; border-radius: 12px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .map-container { position: relative; margin-bottom: 20px; }
+    .map-controls { 
+        position: absolute; top: 20px; right: 20px; z-index: 1000; 
+        background: white; padding: 20px; border-radius: 12px; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 280px; 
+    }
+    .map-controls h3 { font-size: 16px; margin-bottom: 12px; font-weight: 600; margin-top: 0; }
+    .alert-info { background: #e0f2fe; border: 1px solid #0284c7; color: #0c2340; padding: 10px; border-radius: 8px; margin-bottom: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #333; }
+    .form-group select, .form-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+    .btn-scan { background: #6366f1; color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-weight: 600; margin-top: 12px; }
+    .btn-scan:hover { background: #4f46e5; }
+    #doctors-count { font-size: 12px; color: #666; text-align: center; margin-top: 12px; }
+    .leaflet-popup-content { font-family: Arial; max-height: 400px; overflow-y: auto; }
+    
+    /* Doctor list styles */
+    .doctor-item { 
+        padding: 12px; margin-bottom: 10px; border-left: 4px solid #6366f1; background: #f8fafc; 
+        border-radius: 6px; cursor: pointer; transition: all 0.2s; 
+    }
+    .doctor-item:hover { background: #eef2ff; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15); }
+    .doctor-item.selected { background: #e0e7ff; border-left: 4px solid #4f46e5; }
+    .doctor-name { font-weight: 600; color: #1f2937; margin-bottom: 4px; }
+    .doctor-spec { font-size: 12px; color: #6b7280; margin-bottom: 2px; }
+    .doctor-distance { font-size: 11px; color: #9ca3af; }
+    .doctor-rating { color: #f59e0b; font-size: 12px; margin-bottom: 4px; }
+    
+    /* Color code for specialities */
+    .spec-cardiologist { border-left-color: #ef4444; }
+    .spec-pulmonologist { border-left-color: #f97316; }
+    .spec-endocrinologist { border-left-color: #eab308; }
+    .spec-neurologist { border-left-color: #8b5cf6; }
+    .spec-orthopedist { border-left-color: #06b6d4; }
+    .spec-dermatologist { border-left-color: #ec4899; }
+    .spec-gastroenterologist { border-left-color: #14b8a6; }
+    .spec-general { border-left-color: #6366f1; }
+    
+    @media (max-width: 1200px) {
+        #map { width: 100%; display: block; margin-bottom: 20px; }
+        #doctors-list { width: 100%; display: block; margin-left: 0; max-height: 400px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="map-container">
+    <div style="display: flex; gap: 20px;">
+        <div style="flex: 1; position: relative;">
+            <div id="map"></div>
+            <div class="map-controls">
+                <h3><i class="fas fa-filter" style="color: #6366f1;"></i> Find Doctors</h3>
+                
+                {% if specialist %}
+                <div class="alert-info">
+                    <i class="fas fa-magic"></i> <strong>AI Suggests:</strong> {{ specialist }}
+                </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label for="specialization-select">Specialization</label>
+                    <select id="specialization-select" onchange="applyFilters()">
+                        <option value="">All Specializations</option>
+                        <option value="General Physician">General Physician</option>
+                        <option value="Cardiologist">❤️ Cardiologist</option>
+                        <option value="Pulmonologist">💨 Pulmonologist</option>
+                        <option value="Endocrinologist">🔬 Endocrinologist</option>
+                        <option value="Neurologist">🧠 Neurologist</option>
+                        <option value="Orthopedist">🦴 Orthopedist</option>
+                        <option value="Dermatologist">🩹 Dermatologist</option>
+                        <option value="Gastroenterologist">🍽️ Gastroenterologist</option>
+                        <option value="Nephrologist">🫘 Nephrologist</option>
+                        <option value="Psychiatrist">🧘 Psychiatrist</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Search Radius (km)</label>
+                    <input type="range" id="radius-slider" min="5" max="100" value="50" style="width: 100%;" oninput="document.getElementById('radius-val').innerText = this.value + ' km'; applyFilters()">
+                    <div id="radius-val" style="text-align: center; margin-top: 8px; font-weight: 600; color: #6366f1;">50 km</div>
+                </div>
+                
+                {% if specialist %}
+                <button class="btn-scan" onclick="loadRecommendedDoctors()"><i class="fas fa-stethoscope"></i> Find {{ specialist }}s</button>
+                {% else %}
+                <button class="btn-scan" onclick="findNearby()"><i class="fas fa-search-location"></i> Scan Area</button>
+                {% endif %}
+                <div id="doctors-count" style="margin-top: 16px; padding: 12px; background: #f0fdf4; border-radius: 6px; border: 1px solid #bbf7d0;">Found: 0 doctors</div>
+            </div>
+        </div>
+        
+        <div id="doctors-list" style="flex: 0 0 350px; max-height: 600px;">
+            <h3 style="margin-top: 0;"><i class="fas fa-list" style="color: #6366f1;"></i> Nearby Doctors</h3>
+            <div id="doctors-list-content" style="max-height: calc(100% - 50px); overflow-y: auto;">
+                <p style="color: #999; text-align: center; padding: 20px;">Select a specialization and click "Scan Area" to find doctors</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if specialist %}
+<div style="margin-top: 32px; padding: 20px; background: #f0f9ff; border-radius: 12px; border: 1px solid #e0f2fe;">
+    <h3 style="margin-top: 0;"><i class="fas fa-heartbeat" style="color: #e11d48;"></i> Recommended Consultation</h3>
+    <p>Based on your latest health report, our AI recommends consulting a <strong>{{ specialist }}</strong> for proper medical guidance.</p>
+    <p style="color: #666; font-size: 14px;">Use the map above to find qualified {{ specialist }}s near your location. 📍</p>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+    let map;
+    let userMarker = null;
+    let doctorMarkers = [];
+    let allDoctors = [];
+    let userLocation = { lat: 19.0760, lng: 72.8777 }; // Default to Mumbai
+    let selectedDoctorId = null;
+    
+    console.log('🗺️ Map script loaded');
+    
+    // Get color based on specialization
+    function getSpecializationColor(spec) {
+        const colors = {
+            'Cardiologist': '#ef4444',
+            'Pulmonologist': '#f97316',
+            'Endocrinologist': '#eab308',
+            'Neurologist': '#8b5cf6',
+            'Orthopedist': '#06b6d4',
+            'Dermatologist': '#ec4899',
+            'Gastroenterologist': '#14b8a6',
+            'Nephrologist': '#0ea5e9',
+            'Psychiatrist': '#8b5cf6',
+            'General Physician': '#6366f1',
+        };
+        return colors[spec] || '#6366f1';
+    }
+    
+    // Initialize map with Leaflet
+    function initMap() {
+        console.log('🗺️ Initializing Leaflet Map with OpenStreetMap...');
+        
+        map = L.map('map').setView([userLocation.lat, userLocation.lng], 12);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19,
+            crossOrigin: 'anonymous'
+        }).addTo(map);
+        
+        console.log('✅ Map initialized with Leaflet');
+        getAndLoadUserLocation();
+    }
+    
+    function getAndLoadUserLocation() {
+        console.log('📍 Getting user location...');
+        {% if user.latitude and user.longitude %}
+            userLocation.lat = {{ user.latitude }};
+            userLocation.lng = {{ user.longitude }};
+            console.log('✓ Using saved location:', userLocation);
+            addUserMarker();
+            {% if specialist %}
+                document.getElementById('specialization-select').value = '{{ specialist }}';
+                loadDoctors(userLocation.lat, userLocation.lng, 50);
+            {% endif %}
+        {% else %}
+            if (navigator.geolocation) {
+                console.log('📍 Requesting browser geolocation...');
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        userLocation.lat = position.coords.latitude;
+                        userLocation.lng = position.coords.longitude;
+                        console.log('✓ Got browser geolocation:', userLocation);
+                        saveUserLocation(userLocation.lat, userLocation.lng);
+                        addUserMarker();
+                        {% if specialist %}
+                            document.getElementById('specialization-select').value = '{{ specialist }}';
+                            loadDoctors(userLocation.lat, userLocation.lng, 50);
+                        {% endif %}
+                    }, 
+                    error => {
+                        console.warn("⚠️ Geolocation error:", error.message);
+                        addUserMarker();
+                    },
+                    { enableHighAccuracy: false, timeout: 8000, maximumAge: 0 }
+                );
+            } else {
+                console.log('Geolocation not supported, using default Mumbai location');
+                addUserMarker();
+            }
+        {% endif %}
+    }
+    
+    function addUserMarker() {
+        if (userMarker) {
+            map.removeLayer(userMarker);
+        }
+        
+        // Custom blue circle marker for user location
+        userMarker = L.circleMarker([userLocation.lat, userLocation.lng], {
+            radius: 10,
+            fillColor: '#3b82f6',
+            color: '#fff',
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 0.9
+        }).addTo(map);
+        
+        userMarker.bindPopup('<div style="text-align: center; font-weight: 600;">📍 Your Location</div>');
+        map.setView([userLocation.lat, userLocation.lng], 12);
+    }
+    
+    function saveUserLocation(lat, lng) {
+        fetch('/api/doctors/save-location/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+            },
+            body: JSON.stringify({ latitude: lat, longitude: lng })
+        }).catch(err => console.error('Could not save location:', err));
+    }
+    
+    function applyFilters() {
+        if (userLocation.lat && userLocation.lng) {
+            const radius = document.getElementById('radius-slider').value;
+            loadDoctors(userLocation.lat, userLocation.lng, radius);
+        }
+    }
+    
+    function findNearby() {
+        applyFilters();
+    }
+    
+    function loadRecommendedDoctors() {
+        {% if specialist %}
+            document.getElementById('specialization-select').value = '{{ specialist }}';
+        {% endif %}
+        applyFilters();
+    }
+    
+    function loadDoctors(lat, lng, radius) {
+        console.log('\n' + '='.repeat(60));
+        console.log('🔍 LOADING DOCTORS');
+        console.log('  📍 Location: ' + lat.toFixed(4) + ', ' + lng.toFixed(4));
+        console.log('  📏 Radius: ' + radius + ' km');
+        
+        document.getElementById('doctors-count').innerHTML = '🔍 <strong>Searching...</strong>';
+        document.getElementById('doctors-list-content').innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">🔄 Loading doctors...</p>';
+        
+        const specialization = document.getElementById('specialization-select').value;
+        let url = `/api/doctors/nearby/?lat=${lat}&lng=${lng}&radius=${radius}`;
+        
+        if (specialization) {
+            url += `&specialization=${encodeURIComponent(specialization)}`;
+            console.log('  🩺 Filter: ' + specialization);
+        }
+        
+        console.log('  🔗 API: ' + url);
+        
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error('API error: ' + response.status);
+                return response.json();
+            })
+            .then(data => {
+                clearDoctorMarkers();
+                allDoctors = data.doctors || [];
+                
+                console.log('  📊 Found ' + allDoctors.length + ' doctors');
+                console.log('='.repeat(60) + '\n');
+                
+                // Update doctor list
+                updateDoctorsList();
+                
+                // Add markers to map
+                allDoctors.forEach((doctor) => {
+                    addDoctorMarker(doctor);
+                });
+                
+                const count = allDoctors.length;
+                document.getElementById('doctors-count').innerHTML = 
+                    count > 0 ? 
+                    '✅ <strong>Found ' + count + ' doctor' + (count !== 1 ? 's' : '') + '</strong>' :
+                    '⚠️ <strong>No doctors found</strong>';
+            })
+            .catch(error => {
+                console.error('❌ Error:', error);
+                document.getElementById('doctors-count').innerHTML = '❌ <strong>Error loading doctors</strong>';
+                document.getElementById('doctors-list-content').innerHTML = '<p style="color: #f87171; text-align: center; padding: 20px;">Error: ' + error.message + '</p>';
+            });
+    }
+    
+    function updateDoctorsList() {
+        const listContent = document.getElementById('doctors-list-content');
+        
+        if (allDoctors.length === 0) {
+            listContent.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No doctors found in this area</p>';
+            return;
+        }
+        
+        let html = '';
+        allDoctors.forEach((doctor, index) => {
+            const specClass = 'spec-' + doctor.specialization.toLowerCase().replace(/\s+/g, '-');
+            const rating = doctor.rating ? '⭐ ' + doctor.rating : '';
+            const distance = doctor.distance ? doctor.distance + ' km' : 'N/A';
+            
+            html += `<div class="doctor-item ${specClass}" onclick="selectDoctor(${index}, '${doctor.id}')">
+                <div class="doctor-name">${doctor.name}</div>
+                <div class="doctor-spec">🩺 ${doctor.specialization}</div>
+                ${rating ? '<div class="doctor-rating">' + rating + '</div>' : ''}
+                <div class="doctor-distance">📍 ${distance}</div>
+                ${doctor.hospital_name ? '<div class="doctor-spec" style="color: #7c3aed; margin-top: 4px;">' + doctor.hospital_name + '</div>' : ''}
+            </div>`;
+        });
+        
+        listContent.innerHTML = html;
+    }
+    
+    function selectDoctor(index, doctorId) {
+        selectedDoctorId = doctorId;
+        
+        // Update UI
+        document.querySelectorAll('.doctor-item').forEach((el, i) => {
+            el.classList.toggle('selected', i === index);
+        });
+        
+        // Pan to doctor on map
+        const doctor = allDoctors[index];
+        if (doctor && doctor.latitude && doctor.longitude) {
+            map.setView([doctor.latitude, doctor.longitude], 14);
+            
+            // Find and open the corresponding marker
+            doctorMarkers.forEach(marker => {
+                if (marker.doctor_id === index) {
+                    marker.openPopup();
+                }
+            });
+        }
+    }
+    
+    function clearDoctorMarkers() {
+        doctorMarkers.forEach(marker => {
+            map.removeLayer(marker);
+        });
+        doctorMarkers = [];
+        selectedDoctorId = null;
+    }
+    
+    function addDoctorMarker(doctor) {
+        if (!doctor.latitude || !doctor.longitude) {
+            console.warn('⚠️ Doctor has no coordinates:', doctor.name);
+            return;
+        }
+        
+        const color = getSpecializationColor(doctor.specialization);
+        const marker = L.circleMarker([doctor.latitude, doctor.longitude], {
+            radius: 7,
+            fillColor: color,
+            color: '#fff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.85
+        }).addTo(map);
+        
+        // Build popup content
+        let popupContent = `<div style="font-family: Arial; min-width: 280px; padding: 10px;">`;
+        popupContent += `<h3 style="margin: 0 0 8px; font-size: 15px; font-weight: 700; color: #1f2937;">Dr. ${doctor.name}</h3>`;
+        popupContent += `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">`;
+        popupContent += `<span style="font-weight: 600; color: ${color}; font-size: 13px;">🩺 ${doctor.specialization}</span>`;
+        popupContent += `<span style="color: #f59e0b; font-size: 12px;">`;
+        if (doctor.rating) popupContent += `⭐ ${doctor.rating}`;
+        popupContent += `</span></div>`;
+        
+        if (doctor.hospital_name) {
+            popupContent += `<p style="margin: 6px 0; font-size: 12px; color: #666;"><strong>🏥 Hospital:</strong> ${doctor.hospital_name}</p>`;
+        }
+        
+        if (doctor.distance) {
+            popupContent += `<p style="margin: 6px 0; font-size: 12px; color: #666;"><strong>📍 Distance:</strong> ${doctor.distance} km</p>`;
+        }
+        
+        if (doctor.phone && doctor.phone !== 'Not available') {
+            popupContent += `<p style="margin: 6px 0; font-size: 12px; color: #666;"><strong>📞 Phone:</strong> ${doctor.phone}</p>`;
+        }
+        
+        if (doctor.address && doctor.address !== 'Address not available') {
+            popupContent += `<p style="margin: 6px 0; font-size: 12px; color: #666;"><strong>📍 Address:</strong> ${doctor.address}</p>`;
+        }
+        
+        if (doctor.consultation_fee && doctor.consultation_fee !== 'Not available') {
+            popupContent += `<p style="margin: 6px 0; font-size: 12px; color: #666;"><strong>💰 Consultation Fee:</strong> ${doctor.consultation_fee}</p>`;
+        }
+        
+        popupContent += `<p style="margin: 8px 0 0; font-size: 11px; color: #999;">Source: ${doctor.source || 'Database'}</p>`;
+        popupContent += `</div>`;
+        
+        marker.bindPopup(popupContent);
+        marker.doctor_id = allDoctors.indexOf(doctor);
+        doctorMarkers.push(marker);
+    }
+    
+    // Initialize on page load
+    window.addEventListener('load', function() {
+        console.log('📄 Page loaded');
+        const params = new URLSearchParams(window.location.search);
+        let spec = params.get('specialization');
+        {% if specialization %}
+            spec = '{{ specialization }}';
+        {% endif %}
+        if (spec) {
+            document.getElementById('specialization-select').value = spec;
+        }
+        
+        initMap();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,415 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Welcome{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/landing_new.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="landing-page-wrap">
+
+  <!-- ===================== NAVBAR ===================== -->
+  <nav class="lp-nav">
+    <a href="#" class="lp-nav-logo">
+      <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+      AI Warning<span class="logo-accent">System</span>
+    </a>
+
+    <ul class="lp-nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="{% url 'login' %}">Clinical Data</a></li>
+    </ul>
+
+    <div class="lp-nav-actions">
+      <a href="{% url 'login' %}" class="lp-btn-ghost">Login</a>
+      <a href="{% url 'register' %}" class="lp-btn-primary">
+        <i class="fas fa-rocket"></i> Get Started
+      </a>
+    </div>
+  </nav>
+
+  <!-- ===================== HERO ===================== -->
+  <section class="lp-hero">
+    <!-- Left: Text -->
+    <div class="lp-hero-text">
+      <div class="lp-hero-badge">
+        <i class="fas fa-shield-alt"></i>
+        Non-Medical Device — Research Project
+      </div>
+
+      <h1 class="lp-hero-heading">
+        <span>AI-Driven</span> Healthcare &amp; Warning System
+      </h1>
+
+      <p class="lp-hero-sub">
+        Monitor your vitals, receive AI-driven health risk predictions, and connect with the right specialists — all in
+        one intelligent platform. Built for the modern health system to ensure patient safety and clinical excellence.
+      </p>
+
+      <div class="lp-hero-actions">
+        <a href="{% url 'register' %}" class="lp-btn-hero-primary">
+          <i class="fas fa-rocket"></i> Get Started
+        </a>
+        <a href="{% url 'login' %}" class="lp-btn-hero-outline">
+          <i class="fas fa-sign-in-alt"></i> View Documentation
+        </a>
+      </div>
+    </div>
+
+    <!-- Right: Dashboard Mock -->
+    <div class="lp-hero-visual">
+      <div class="lp-dashboard-mock">
+        <div class="lp-mock-topbar">
+          <span class="lp-mock-title">Patient Health Monitor</span>
+          <div class="lp-mock-status">
+            <div class="lp-pulse-dot"></div>
+            Optimal Cardiac Stability
+          </div>
+        </div>
+
+        <div class="lp-mock-stats">
+          <div class="lp-mock-stat">
+            <div class="lp-mock-stat-label">Heart Rate</div>
+            <div class="lp-mock-stat-value">72</div>
+            <div class="lp-mock-stat-sub">bpm ↓ normal</div>
+          </div>
+          <div class="lp-mock-stat">
+            <div class="lp-mock-stat-label">Blood Pressure</div>
+            <div class="lp-mock-stat-value">118/76</div>
+            <div class="lp-mock-stat-sub warning">mmHg ↑ watch</div>
+          </div>
+          <div class="lp-mock-stat">
+            <div class="lp-mock-stat-label">Risk Score</div>
+            <div class="lp-mock-stat-value">Low</div>
+            <div class="lp-mock-stat-sub">AI assessed</div>
+          </div>
+        </div>
+
+        <div class="lp-mock-chart">
+          <div class="lp-mock-chart-label">ECG Signal — Live</div>
+          <svg class="lp-ecg-svg" viewBox="0 0 400 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline
+              points="0,35 40,35 55,35 62,10 70,48 78,5 88,52 96,35 160,35 200,35 215,35 222,10 230,48 238,5 248,52 256,35 320,35 360,35 375,35 382,10 390,48 400,35"
+              stroke="#6366f1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+            <polyline
+              points="0,35 40,35 55,35 62,10 70,48 78,5 88,52 96,35 160,35 200,35 215,35 222,10 230,48 238,5 248,52 256,35 320,35 360,35 375,35 382,10 390,48 400,35"
+              stroke="rgba(99,102,241,0.15)" stroke-width="8" fill="none" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </div>
+
+        <div class="lp-mock-risk">
+          <span class="lp-mock-risk-label">AI Prediction Result</span>
+          <span class="lp-mock-risk-value">✓ Low Risk — Continue Monitoring</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FEATURES ===================== -->
+  <section class="lp-features" id="features">
+    <div class="lp-features-inner">
+      <div class="lp-section-label">Precision Clinical Tools</div>
+      <h2 class="lp-section-title">Key Features</h2>
+      <p class="lp-section-sub">Advanced modules designed to integrate seamlessly into existing healthcare workflows.
+      </p>
+
+      <div class="lp-features-grid">
+
+        <!-- AI Prediction -->
+        <div class="lp-feature-card">
+          <div class="lp-feature-icon-wrap indigo"><i class="fas fa-brain"></i></div>
+          <div>
+            <div class="lp-feature-title">AI Prediction</div>
+            <p class="lp-feature-desc">RandomForest ML model classifies your health risk as Low, Medium, or High. Our
+              neural networks analyze biometric data patterns to predict potential anomalies before they become
+              critical.</p>
+          </div>
+          <div class="lp-feature-visual">
+            <div class="lp-progress-bar-wrap">
+              <div class="lp-progress-item">
+                <span class="lp-progress-label" style="width:28px;font-size:10px;">Low</span>
+                <div class="lp-progress-track">
+                  <div class="lp-progress-fill green" style="width:75%"></div>
+                </div>
+              </div>
+              <div class="lp-progress-item">
+                <span class="lp-progress-label" style="width:28px;font-size:10px;">Med</span>
+                <div class="lp-progress-track">
+                  <div class="lp-progress-fill amber" style="width:20%"></div>
+                </div>
+              </div>
+              <div class="lp-progress-item">
+                <span class="lp-progress-label" style="width:28px;font-size:10px;">High</span>
+                <div class="lp-progress-track">
+                  <div class="lp-progress-fill red" style="width:5%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Smart Alerts -->
+        <div class="lp-feature-card">
+          <div class="lp-feature-icon-wrap red"><i class="fas fa-bell"></i></div>
+          <div>
+            <div class="lp-feature-title">Smart Alerts</div>
+            <p class="lp-feature-desc">Instant notifications when abnormal vital signs are detected. Receive prioritized
+              notifications based on severity levels. Alerts sync instantly across all connected medical devices.</p>
+          </div>
+          <div class="lp-feature-visual">
+            <div class="lp-alert-preview">
+              <i class="fas fa-exclamation-circle alert-icon"></i>
+              <div class="lp-alert-preview-text">
+                <strong>CRITICAL ALERT</strong>
+                <span>Pulse Rate: 142bpm detected</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Health Trends -->
+        <div class="lp-feature-card">
+          <div class="lp-feature-icon-wrap green"><i class="fas fa-chart-line"></i></div>
+          <div>
+            <div class="lp-feature-title">Health Trends</div>
+            <p class="lp-feature-desc">Visualize your health data over time with interactive charts. Longitudinal
+              tracking to monitor patient improvements with clear metrics in your baseline health markers.</p>
+          </div>
+          <div class="lp-feature-visual">
+            <div class="lp-mini-bars">
+              <div class="lp-mini-bar" style="height:30%"></div>
+              <div class="lp-mini-bar" style="height:50%"></div>
+              <div class="lp-mini-bar" style="height:40%"></div>
+              <div class="lp-mini-bar" style="height:65%"></div>
+              <div class="lp-mini-bar" style="height:55%"></div>
+              <div class="lp-mini-bar active" style="height:80%"></div>
+              <div class="lp-mini-bar active" style="height:90%"></div>
+              <div class="lp-mini-bar active" style="height:75%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Upload -->
+        <div class="lp-feature-card">
+          <div class="lp-feature-icon-wrap amber"><i class="fas fa-file-medical-alt"></i></div>
+          <div>
+            <div class="lp-feature-title">Report Upload</div>
+            <p class="lp-feature-desc">Upload your medical reports and get matched with the right specialists.
+              Intelligent OCR processing for bulk ingestion of legacy medical records and lab results.</p>
+          </div>
+          <div class="lp-feature-visual">
+            <div class="lp-upload-preview">
+              <i class="fas fa-cloud-upload-alt"></i>
+              Drop medical reports here or click to upload
+            </div>
+          </div>
+        </div>
+
+        <!-- Nearby Doctors -->
+        <div class="lp-feature-card">
+          <div class="lp-feature-icon-wrap blue"><i class="fas fa-map-marked-alt"></i></div>
+          <div>
+            <div class="lp-feature-title">Nearby Doctors</div>
+            <p class="lp-feature-desc">Find qualified doctors near you on an interactive map. Our directory matches you
+              with verified professionals based on your specific health profile and specialization needs.</p>
+          </div>
+          <div class="lp-feature-visual">
+            <div class="lp-map-preview">
+              <div class="lp-map-dot" style="top:30%;left:40%;"></div>
+              <div class="lp-map-dot"
+                style="top:55%;left:65%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,0.2);"></div>
+              <div class="lp-map-dot"
+                style="top:20%;left:70%;background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,0.2);"></div>
+              <i class="fas fa-map" style="font-size:28px;color:#bfdbfe;opacity:0.4;"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Secure & Private -->
+        <div class="lp-feature-card">
+          <div class="lp-feature-icon-wrap purple"><i class="fas fa-shield-alt"></i></div>
+          <div>
+            <div class="lp-feature-title">Secure &amp; Private</div>
+            <p class="lp-feature-desc">JWT-protected API, encrypted data, CSRF-safe form handling. Your health data is
+              encrypted using military-grade protocols. You maintain 100% ownership and control over your records.</p>
+          </div>
+          <div class="lp-feature-visual">
+            <div class="lp-sec-badges">
+              <span class="lp-sec-badge">JWT Auth</span>
+              <span class="lp-sec-badge">AES-256</span>
+              <span class="lp-sec-badge">CSRF Safe</span>
+              <span class="lp-sec-badge">HTTPS</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== HOW IT WORKS ===================== -->
+  <section class="lp-how" id="how-it-works">
+    <div class="lp-how-inner">
+
+      <!-- Left: Steps -->
+      <div>
+        <div class="lp-section-label">Your Intelligent Journey</div>
+        <h2 class="lp-section-title">How It Works</h2>
+        <p class="lp-section-sub" style="margin-bottom:40px;">Simple steps to professional-grade health monitoring.</p>
+
+        <div class="lp-steps">
+          <div class="lp-step">
+            <div class="lp-step-left">
+              <div class="lp-step-num">1</div>
+              <div class="lp-step-line"></div>
+            </div>
+            <div class="lp-step-content">
+              <h3>Create Account</h3>
+              <p>Sign up and complete your health profile with basic information. Authentication secured with JWT
+                tokens.</p>
+            </div>
+          </div>
+          <div class="lp-step">
+            <div class="lp-step-left">
+              <div class="lp-step-num">2</div>
+              <div class="lp-step-line"></div>
+            </div>
+            <div class="lp-step-content">
+              <h3>Monitor Vitals</h3>
+              <p>Input your health metrics or upload medical reports. Live data stream from connected monitoring
+                devices.</p>
+            </div>
+          </div>
+          <div class="lp-step">
+            <div class="lp-step-left">
+              <div class="lp-step-num">3</div>
+              <div class="lp-step-line"></div>
+            </div>
+            <div class="lp-step-content">
+              <h3>Get AI Analysis</h3>
+              <p>Receive instant health risk predictions and alerts. Our AI processes biomarkers in real-time for
+                accurate assessments.</p>
+            </div>
+          </div>
+          <div class="lp-step">
+            <div class="lp-step-left">
+              <div class="lp-step-num">4</div>
+              <div class="lp-step-line"></div>
+            </div>
+            <div class="lp-step-content">
+              <h3>Find Doctors</h3>
+              <p>Connect with qualified specialists near you. Get matched based on your health profile and location.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Pipeline visual -->
+      <div class="lp-how-visual">
+        <div class="lp-how-visual-title">A Desktop-First Experience for Professionals</div>
+        <div class="lp-pipeline-step">
+          <div class="lp-pipeline-icon blue"><i class="fas fa-user-plus"></i></div>
+          <div class="lp-pipeline-text">
+            <h4>Create Account</h4>
+            <p>HIPAA-Compliant Data Management</p>
+          </div>
+        </div>
+        <div class="lp-pipeline-step">
+          <div class="lp-pipeline-icon green"><i class="fas fa-heartbeat"></i></div>
+          <div class="lp-pipeline-text">
+            <h4>Monitor Vitals</h4>
+            <p>Real-time Vital Monitoring</p>
+          </div>
+        </div>
+        <div class="lp-pipeline-step">
+          <div class="lp-pipeline-icon indigo"><i class="fas fa-brain"></i></div>
+          <div class="lp-pipeline-text">
+            <h4>Get AI Analysis</h4>
+            <p>Real-time AI/ML Diagnostics</p>
+          </div>
+        </div>
+        <div class="lp-pipeline-step">
+          <div class="lp-pipeline-icon orange"><i class="fas fa-user-md"></i></div>
+          <div class="lp-pipeline-text">
+            <h4>Find Doctors</h4>
+            <p>Specialist Care Network</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== DISCLAIMER ===================== -->
+  <div class="lp-disclaimer">
+    <div class="lp-disclaimer-inner">
+      <i class="fas fa-exclamation-triangle lp-disclaimer-icon"></i>
+      <div class="lp-disclaimer-text">
+        <strong>Research Project Disclaimer:</strong> HealthGuard AI is a research/educational project. It is not a
+        certified medical device and must not be used for clinical diagnosis or treatment decisions. Always consult
+        qualified healthcare professionals.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== CTA ===================== -->
+  <section class="lp-cta">
+    <div class="lp-cta-tag">Ready to transform patient outcomes?</div>
+    <h2 class="lp-cta-title">Ready to Take Control<br>of Your Health?</h2>
+    <p class="lp-cta-sub">Join thousands of users already monitoring their health with HealthGuardAI.</p>
+    <div class="lp-cta-actions">
+      <a href="{% url 'register' %}" class="lp-btn-cta-primary">
+        <i class="fas fa-heart"></i> Start Your Journey Today
+      </a>
+      <a href="{% url 'login' %}" class="lp-btn-cta-outline">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </a>
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="lp-footer">
+    <div class="lp-footer-brand">
+      <div class="logo-wrap">
+        <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+        <span class="logo-name">HealthGuard<span>AI</span></span>
+      </div>
+      <p>Powering clinical decision support with non-certifiable research tools and improving health outcomes.</p>
+    </div>
+
+    <div class="lp-footer-col">
+      <h4>Product</h4>
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="{% url 'register' %}">Get Started</a></li>
+      </ul>
+    </div>
+
+    <div class="lp-footer-col">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+        <li><a href="#">HIPAA Compliance</a></li>
+      </ul>
+    </div>
+
+    <div class="lp-footer-col">
+      <h4>Support</h4>
+      <ul>
+        <li><a href="#">Help Center</a></li>
+        <li><a href="#">Contact Us</a></li>
+        <li><a href="#">Press Kit</a></li>
+      </ul>
+    </div>
+  </footer>
+  <div class="lp-footer-bottom">
+    <p>© 2024 HealthGuardAI. AI Health Warning System — Research Project Only.</p>
+    <p style="color:#4b5563;">Non-Medical Device</p>
+  </div>
+
+</div>
+{% endblock %}

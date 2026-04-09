@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  border-left: 4px solid var(--primary);
+}
+
+.stat-icon { font-size: 24px; opacity: 0.6; }
+.stat-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+.stat-value { font-size: 22px; font-weight: 700; margin-top: 8px; }
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.chart-card {
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 280px;
+  width: 100%;
+  margin-top: 12px;
+}
+</style>
+
+<!-- Quick Stats -->
+<div class="stats-grid">
+    <div class="stat-card" style="border-left-color: #ef4444;">
+        <i class="stat-icon fas fa-heartbeat"></i>
+        <div class="stat-label">Heart Rate</div>
+        <div class="stat-value">{{ latest.heart_rate|default:"--" }} bpm</div>
+    </div>
+    <div class="stat-card" style="border-left-color: #f59e0b;">
+        <i class="stat-icon fas fa-tint"></i>
+        <div class="stat-label">Blood Pressure</div>
+        <div class="stat-value">{{ latest.blood_pressure_sys|default:"--" }}/{{ latest.blood_pressure_dia|default:"--" }}</div>
+    </div>
+    <div class="stat-card" style="border-left-color: #10b981;">
+        <i class="stat-icon fas fa-lungs"></i>
+        <div class="stat-label">Oxygen (SpO2)</div>
+        <div class="stat-value">{{ latest.spo2|default:"--" }}%</div>
+    </div>
+    <div class="stat-card" style="border-left-color: #3b82f6;">
+        <i class="stat-icon fas fa-droplet"></i>
+        <div class="stat-label">Glucose</div>
+        <div class="stat-value">{{ latest.glucose|default:"--" }} mg/dL</div>
+    </div>
+    <div class="stat-card" style="border-left-color: #ef4444;">
+        <i class="stat-icon fas fa-bell"></i>
+        <div class="stat-label">Alerts</div>
+        <div class="stat-value">{{ unread_count }}</div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="charts-grid">
+    <div class="chart-card">
+        <div class="card-header"><i class="fas fa-heart"></i> Heart Rate Trend</div>
+        <div class="chart-wrapper">
+            <canvas id="heartRateChart" class="chart-canvas"></canvas>
+        </div>
+    </div>
+    
+    <div class="chart-card">
+        <div class="card-header"><i class="fas fa-tint"></i> Blood Pressure Trend</div>
+        <div class="chart-wrapper">
+            <canvas id="bpChart" class="chart-canvas"></canvas>
+        </div>
+    </div>
+    
+    <div class="chart-card">
+        <div class="card-header"><i class="fas fa-lungs"></i> SpO2 & Glucose</div>
+        <div class="chart-wrapper">
+            <canvas id="oxygenGlucoseChart" class="chart-canvas"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Readings -->
+<div class="card">
+    <div class="card-header"><i class="fas fa-history"></i> Recent Readings & Doctor Consultation</div>
+    {% if records %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border);">
+                    <th style="padding: 10px; text-align: left;">Date</th>
+                    <th style="padding: 10px; text-align: center;">Heart Rate</th>
+                    <th style="padding: 10px; text-align: center;">BP</th>
+                    <th style="padding: 10px; text-align: center;">SpO2</th>
+                    <th style="padding: 10px; text-align: center;">Glucose</th>
+                    <th style="padding: 10px; text-align: center;">Risk</th>
+                    <th style="padding: 10px; text-align: center;">Find Doctor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 10px;">{{ record.timestamp|date:"M d, H:i" }}</td>
+                    <td style="padding: 10px; text-align: center;">{{ record.heart_rate }}</td>
+                    <td style="padding: 10px; text-align: center;">{{ record.blood_pressure_sys }}/{{ record.blood_pressure_dia }}</td>
+                    <td style="padding: 10px; text-align: center;">{{ record.spo2 }}%</td>
+                    <td style="padding: 10px; text-align: center;">{{ record.glucose }}</td>
+                    <td style="padding: 10px; text-align: center;">
+                        {% if record.prediction %}
+                            <span style="padding: 4px 8px; border-radius: 4px; font-weight: 600;
+                                {% if record.prediction.risk_level == 'LOW' %}background: rgba(16, 185, 129, 0.2); color: #10b981;
+                                {% elif record.prediction.risk_level == 'MEDIUM' %}background: rgba(245, 158, 11, 0.2); color: #f59e0b;
+                                {% else %}background: rgba(239, 68, 68, 0.2); color: #ef4444;{% endif %}">
+                                {{ record.prediction.get_risk_level_display }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 10px; text-align: center;">
+                        {% if record.prediction and record.prediction.specialist_needed %}
+                            <a href="{% url 'doctor_map' %}?specialist={{ record.prediction.specialist_needed|urlencode }}" 
+                               class="btn btn-primary" style="font-size: 11px; padding: 6px 12px; text-decoration: none; display: inline-flex; gap: 4px;">
+                                <i class="fas fa-hospital-user"></i> {{ record.prediction.specialist_needed|truncatewords:1 }}
+                            </a>
+                        {% else %}
+                            <a href="{% url 'doctor_map' %}" class="btn btn-secondary" style="font-size: 11px; padding: 6px 12px; text-decoration: none; display: inline-flex; gap: 4px;">
+                                <i class="fas fa-search-location"></i> Find
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding: 40px; text-align: center; color: var(--text-muted);">
+        <i class="fas fa-folder-open" style="font-size: 32px; opacity: 0.3;"></i>
+        <p>No health records yet. Start by logging your first reading!</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const chartData = {{ chart_data|safe|default:"[]" }};
+    
+    if (chartData.length > 0) {
+        const labels = chartData.map(d => new Date(d.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric'}));
+        const heartRates = chartData.map(d => d.heart_rate);
+        const sysBP = chartData.map(d => d.blood_pressure_sys);
+        const diaBP = chartData.map(d => d.blood_pressure_dia);
+        const spo2 = chartData.map(d => d.spo2);
+        const glucose = chartData.map(d => d.glucose);
+        
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = 'Inter';
+        
+        // Heart Rate Chart
+        if (document.getElementById('heartRateChart')) {
+            new Chart(document.getElementById('heartRateChart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Heart Rate (BPM)',
+                        data: heartRates,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } },
+                    scales: {
+                        y: { beginAtZero: false, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+        
+        // Blood Pressure Chart
+        if (document.getElementById('bpChart')) {
+            new Chart(document.getElementById('bpChart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Systolic BP',
+                            data: sysBP,
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Diastolic BP',
+                            data: diaBP,
+                            borderColor: '#3b82f6',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            pointRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+        
+        // SpO2 & Glucose Chart
+        if (document.getElementById('oxygenGlucoseChart')) {
+            new Chart(document.getElementById('oxygenGlucoseChart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'SpO2 (%)',
+                            data: spo2,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y',
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Glucose (mg/dL)',
+                            data: glucose,
+                            borderColor: '#8b5cf6',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            yAxisID: 'y1',
+                            pointRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            title: { display: true, text: 'SpO2 (%)' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: 'Glucose (mg/dL)' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}

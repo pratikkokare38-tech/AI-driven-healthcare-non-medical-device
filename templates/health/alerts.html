@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Alerts{% endblock %}
+{% block page_title %}My Alerts{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header"><i class="fas fa-bell"></i> System Alerts & Warnings</div>
+    
+    {% if alerts %}
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for alert in alerts %}
+            <div style="padding: 16px; border-radius: 12px; background: rgba(30,41,59,0.5); border: 1px solid var(--border); border-left: 4px solid {% if 'HIGH' in alert.prediction.risk_level %}var(--danger){% else %}var(--warning){% endif %}; display: flex; align-items: flex-start; gap: 16px;">
+                <div style="font-size: 24px; color: {% if 'HIGH' in alert.prediction.risk_level %}var(--danger){% else %}var(--warning){% endif %};">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-size: 15px; font-weight: 500; margin-bottom: 6px;">{{ alert.message }}</div>
+                    <div style="display: flex; gap: 16px; font-size: 12px; color: var(--text-muted);">
+                        <span><i class="fas fa-clock"></i> {{ alert.created_at|date:"M d, Y H:i" }}</span>
+                        <span>Linked to: <a href="{% url 'prediction_result' alert.prediction.id %}" style="color: var(--primary-light);">Analysis #{{ alert.prediction.id }}</a></span>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-bell-slash"></i>
+        <p>No alerts generated. You currently have no active warnings.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

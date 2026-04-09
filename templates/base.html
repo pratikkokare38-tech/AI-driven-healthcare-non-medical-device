@@ -1,0 +1,199 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <title>{% block title %}HealthGuard AI{% endblock %} — AI Health Warning System</title>
+    <meta name="description" content="AI-Driven Health Warning System — Non-Medical Device Research Project">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style_simple.css' %}">
+    <link rel="stylesheet" href="{% static 'css/professional.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+{% if user.is_authenticated %}
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon"><i class="fas fa-heartbeat"></i></div>
+        <span class="brand-text">HealthGuard<span class="brand-accent">AI</span></span>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i><span>Dashboard</span>
+        </a>
+        <a href="{% url 'health_input' %}" class="nav-item {% if request.resolver_match.url_name == 'health_input' %}active{% endif %}">
+            <i class="fas fa-stethoscope"></i><span>Health Check</span>
+        </a>
+        <a href="{% url 'health_history' %}" class="nav-item {% if request.resolver_match.url_name == 'health_history' %}active{% endif %}">
+            <i class="fas fa-history"></i><span>History</span>
+        </a>
+        <a href="{% url 'alerts' %}" class="nav-item {% if request.resolver_match.url_name == 'alerts' %}active{% endif %}">
+            <i class="fas fa-bell"></i><span>Alerts</span>
+            {% if unread_count %}<span class="badge">{{ unread_count }}</span>{% endif %}
+        </a>
+        <div class="nav-divider"></div>
+        <a href="{% url 'report_upload' %}" class="nav-item {% if request.resolver_match.url_name == 'report_upload' %}active{% endif %}">
+            <i class="fas fa-file-medical"></i><span>Upload Report</span>
+        </a>
+        <a href="{% url 'report_list' %}" class="nav-item {% if request.resolver_match.url_name == 'report_list' %}active{% endif %}">
+            <i class="fas fa-folder-open"></i><span>My Reports</span>
+        </a>
+        <div class="nav-divider"></div>
+        <a href="{% url 'doctor_list' %}" class="nav-item {% if request.resolver_match.url_name == 'doctor_list' %}active{% endif %}">
+            <i class="fas fa-user-md"></i><span>Doctors</span>
+        </a>
+        <a href="{% url 'doctor_map' %}" class="nav-item {% if request.resolver_match.url_name == 'doctor_map' %}active{% endif %}">
+            <i class="fas fa-map-marked-alt"></i><span>Nearby Map</span>
+        </a>
+        <div class="nav-divider"></div>
+        <a href="{% url 'profile' %}" class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+            <i class="fas fa-user-circle"></i><span>Profile</span>
+        </a>
+        <a href="{% url 'logout' %}" class="nav-item logout">
+            <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+        </a>
+    </nav>
+</div>
+{% endif %}
+<!-- Main Content Wrapper -->
+{% if user.is_authenticated %}
+<div class="main-wrapper">
+    <header class="top-header">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('collapsed')">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="header-title">{% block page_title %}Dashboard{% endblock %}</div>
+        <div class="header-right">
+            <button class="theme-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+                <i class="fas fa-moon"></i>
+            </button>
+            <span class="user-chip">
+                <i class="fas fa-user-circle"></i>
+                {{ user.get_full_name|default:user.username }}
+                <span class="role-badge {{ user.role }}">{{ user.role|capfirst }}</span>
+            </span>
+        </div>
+    </header>
+    <div class="page-content">
+{% else %}
+<!-- Public page (no sidebar) -->
+<div class="public-page-wrapper">
+{% endif %}
+
+    {% if messages %}
+    <div class="messages-container {% if not user.is_authenticated %}public{% endif %}">
+        {% for msg in messages %}
+        <div class="alert-toast alert-{{ msg.tags }}" id="toast-{{ forloop.counter }}">
+            <i class="fas {% if msg.tags == 'success' %}fa-check-circle{% elif msg.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+            {{ msg }}
+            <button onclick="this.parentElement.remove()" class="toast-close">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+{% if user.is_authenticated %}
+    </div>
+</div>
+{% else %}
+</div>
+{% endif %}
+
+<script>
+// Dark mode toggle
+function toggleDarkMode() {
+    document.documentElement.classList.toggle('dark-mode');
+    const isDark = document.documentElement.classList.contains('dark-mode');
+    localStorage.setItem('dark-mode', isDark);
+    updateThemeIcon();
+}
+
+function updateThemeIcon() {
+    const icon = document.querySelector('.theme-toggle i');
+    if (document.documentElement.classList.contains('dark-mode')) {
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
+    } else {
+        icon.classList.remove('fa-sun');
+        icon.classList.add('fa-moon');
+    }
+}
+
+// Load dark mode preference
+window.addEventListener('load', () => {
+    const isDark = localStorage.getItem('dark-mode') === 'true';
+    if (isDark) {
+        document.documentElement.classList.add('dark-mode');
+    }
+    updateThemeIcon();
+});
+
+// Auto-dismiss toasts
+document.querySelectorAll('.alert-toast').forEach((t, i) => {
+    setTimeout(() => { if(t) t.style.opacity = '0'; setTimeout(() => t?.remove(), 400); }, 4000 + i*500);
+});
+
+// Tab switching function
+function switchTab(event, tabName) {
+    event.preventDefault();
+    
+    // Hide all tab contents in the parent card
+    const container = event.target.closest('.tabs-container');
+    if (!container) return;
+    
+    const card = container.closest('.card');
+    if (!card) return;
+    
+    const contents = card.querySelectorAll('.tab-content');
+    contents.forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Deactivate all tab buttons
+    const buttons = container.querySelectorAll('.tab-button');
+    buttons.forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    // Activate clicked button
+    event.target.classList.add('active');
+    
+    // Activate corresponding content
+    const tabContent = card.querySelector('#' + tabName);
+    if (tabContent) {
+        tabContent.classList.add('active');
+        
+        // Scroll tab into view if needed
+        container.scrollLeft = event.target.offsetLeft - container.offsetLeft - 50;
+    }
+}
+
+// Initialize first tab as active on page load
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.tabs-container').forEach(container => {
+        const firstButton = container.querySelector('.tab-button');
+        if (firstButton && !container.querySelector('.tab-button.active')) {
+            firstButton.classList.add('active');
+            const tabName = firstButton.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+            if (tabName) {
+                const card = container.closest('.card');
+                const tabContent = card?.querySelector('#' + tabName);
+                if (tabContent) {
+                    tabContent.classList.add('active');
+                }
+            }
+        }
+    });
+});
+</script>
+<script src="{% static 'js/app.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

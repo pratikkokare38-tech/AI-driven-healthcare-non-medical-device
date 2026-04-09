@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block title %}Upload Report{% endblock %}
+{% block page_title %}Upload Medical Report{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+    <div class="card-header">
+        <i class="fas fa-file-upload"></i> Upload Report Card
+    </div>
+    <form method="post" enctype="multipart/form-data" class="auth-form" id="upload-form">
+        {% csrf_token %}
+        <div class="form-group mb-4">
+            <label>Report Title</label>
+            <input type="text" name="title" class="form-control" placeholder="e.g. Blood Test - Jan 2024" required>
+        </div>
+        <div class="form-group mb-4">
+            <label>Description / Notes (Optional)</label>
+            <textarea name="description" class="form-control" rows="3" placeholder="Any context or notes for the doctor..."></textarea>
+        </div>
+        
+        <div class="form-group mb-4">
+            <label>Report File</label>
+            <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <h3 style="font-size: 18px; margin-bottom: 8px;">Drag & Drop or Click to Upload</h3>
+                <p class="text-muted" style="font-size: 14px;">Supported files: PDF, JPEG, PNG, JPG</p>
+                <div id="file-name" class="mt-4" style="font-size: 14px; font-weight: 600; color: var(--primary-light);"></div>
+            </div>
+            <input type="file" name="file" id="file-input" style="display: none;" accept=".pdf,image/*" required onchange="document.getElementById('file-name').innerText = this.files[0] ? this.files[0].name : ''">
+        </div>
+        
+        <!-- Expandable Vital Signs Section -->
+        <div class="mb-4" style="border: 1px solid #e0e0e0; border-radius: 8px;">
+            <div onclick="toggleVitalSigns()" style="padding: 12px 16px; background: #f5f5f5; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 8px;">
+                <label style="margin: 0; cursor: pointer; font-weight: 600;"><i class="fas fa-heartbeat"></i> Manual Vital Signs (Optional)</label>
+                <i class="fas fa-chevron-down" id="chevron-icon"></i>
+            </div>
+            <div id="vital-signs-section" style="padding: 16px; display: none; border-radius: 8px; background: #fafafa;">
+                <p style="font-size: 13px; color: #666; margin-bottom: 16px;">
+                    <i class="fas fa-info-circle"></i> If we can't extract vital signs from your report, or to override auto-detection, enter them here:
+                </p>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div class="form-group">
+                        <label>Heart Rate (BPM)</label>
+                        <input type="number" name="heart_rate" class="form-control" placeholder="e.g. 78" step="0.1" min="40" max="200">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Blood Pressure Systolic (mmHg)</label>
+                        <input type="number" name="blood_pressure_sys" class="form-control" placeholder="e.g. 120" step="1" min="80" max="200">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Blood Pressure Diastolic (mmHg)</label>
+                        <input type="number" name="blood_pressure_dia" class="form-control" placeholder="e.g. 80" step="1" min="40" max="130">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>SpO2 - Oxygen Saturation (%)</label>
+                        <input type="number" name="spo2" class="form-control" placeholder="e.g. 98" step="0.1" min="70" max="100">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Blood Glucose (mg/dL)</label>
+                        <input type="number" name="glucose" class="form-control" placeholder="e.g. 95" step="0.1" min="50" max="500">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>BMI (Body Mass Index)</label>
+                        <input type="number" name="bmi" class="form-control" placeholder="e.g. 22.5" step="0.1" min="10" max="60">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Temperature (°C)</label>
+                        <input type="number" name="temperature" class="form-control" placeholder="e.g. 36.5" step="0.1" min="35" max="42">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert-toast alert-info mb-4" style="opacity: 1; animation: none; position: static; max-width: 100%;">
+            <i class="fas fa-info-circle"></i>
+            <strong>Smart Feature:</strong> We'll automatically extract vital signs from your report using AI. If warnings are detected, we'll show nearby doctors on the map for quick consultation!
+        </div>
+        
+        <div class="mt-4" style="text-align: right;">
+            <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+                <i class="fas fa-paper-plane"></i> Upload & Analyze Report
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleVitalSigns() {
+        const section = document.getElementById('vital-signs-section');
+        const chevron = document.getElementById('chevron-icon');
+        section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        chevron.style.transform = section.style.display === 'block' ? 'rotate(180deg)' : 'rotate(0deg)';
+        chevron.style.transition = 'transform 0.3s ease';
+    }
+    
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault(); dropZone.classList.add('drag-over');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault(); dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            document.getElementById('file-name').innerText = fileInput.files[0].name;
+        }
+    });
+
+    document.getElementById('upload-form').addEventListener('submit', function() {
+        const btn = document.getElementById('submit-btn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Report...';
+        btn.disabled = true;
+    });
+</script>
+{% endblock %}

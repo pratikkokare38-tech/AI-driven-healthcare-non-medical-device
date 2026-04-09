@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Health History{% endblock %}
+{% block page_title %}Health History{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header"><i class="fas fa-history"></i> All Health Records</div>
+    
+    {% if records %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Record ID</th>
+                    <th>Date & Time</th>
+                    <th>Heart Rate (bpm)</th>
+                    <th>Blood Pressure (mmHg)</th>
+                    <th>SpO2 (%)</th>
+                    <th>BMI</th>
+                    <th>Glucose (mg/dL)</th>
+                    <th>Temp (°C)</th>
+                    <th>AI Risk</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td>#{{ record.id }}</td>
+                    <td>{{ record.timestamp|date:"M d, Y H:i" }}</td>
+                    <td><span class="tag"><i class="fas fa-heart" style="color:#ef4444;"></i> {{ record.heart_rate }}</span></td>
+                    <td>{{ record.blood_pressure_sys }}/{{ record.blood_pressure_dia }}</td>
+                    <td>{{ record.spo2 }}%</td>
+                    <td>{{ record.bmi }}</td>
+                    <td>{{ record.glucose }}</td>
+                    <td>{{ record.temperature }}</td>
+                    <td>
+                        {% if record.prediction %}
+                            <a href="{% url 'prediction_result' record.prediction.id %}" style="text-decoration: none;">
+                                <span class="risk-badge risk-{{ record.prediction.risk_level }}">{{ record.prediction.risk_level }}</span>
+                            </a>
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-folder-open"></i>
+        <p>No health records found in your history.</p>
+        <a href="{% url 'health_input' %}" class="btn btn-primary mt-4">Add Your First Reading</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
