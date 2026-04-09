@@ -12,3 +12,5 @@ django-filter>=25.0
 pymongo>=4.6
 requests>=2.31.0
 python-dotenv>=1.0.1
+gunicorn
+whitenoise[brotli]
